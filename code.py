@@ -1,28 +1,38 @@
-# Importing necessary libraries
+# Import necessary libraries
+import numpy as np
 from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score
 
-# Loading the Iris dataset
+# Loading Iris dataset
 iris = load_iris()
 X = iris.data
 y = iris.target
 
-# Splitting the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Initializing and training the Random Forest classifier
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X_train, y_train)
+# Initialize the Random Forest model
+clf = RandomForestClassifier(random_state=42)
 
-# Predicting on the test set
-y_pred = clf.predict(X_test)
+# Define the parameter grid
+param_grid = {
+    'n_estimators': [50, 100],
+    'max_depth': [None, 10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
 
-# Evaluating the model
+# Perform Grid Search with cross-validation
+grid_search = GridSearchCV(rf, param_grid=param_grid, cv=5)
+grid_search.fit(X_train, y_train)
+
+# Evaluate the model
+best_rf = grid_search.best_estimator_
+y_pred = best_rf.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-class_report = classification_report(y_test, y_pred, target_names=iris.target_names)
 
-# Displaying the evaluation results
-print("Accuracy:", accuracy)
-print("Classification Report:\n", class_report)
+# Print the results
+print(f'Best parameters - {grid_search.best_params_} {grid_search.best_estimator_}')
+print(f'Accuracy: {accuracy}')
